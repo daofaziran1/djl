@@ -2,13 +2,17 @@ group "ai.djl.hadoop"
 
 dependencies {
     api project(":api")
-    api "org.apache.hadoop:hadoop-client:${hadoop_version}"
+    api ("org.apache.hadoop:hadoop-client:${hadoop_version}") {
+        exclude group: "log4j", module: "log4j"
+        exclude group: "org.slf4j", module: "slf4j-log4j12"
+    }
 
     testImplementation project(":engines:mxnet:mxnet-engine")
     testImplementation "org.apache.hadoop:hadoop-minicluster:${hadoop_version}"
     testImplementation(project(":testing"))
 
-    testImplementation("org.testng:testng:${testng_version}");
+    testImplementation "org.testng:testng:${testng_version}"
+    testRuntimeOnly "junit:junit:${junit_version}" // hadoop-client test depends on junit
 }
 
 publishing {

@@ -64,17 +64,15 @@ The dataset will take the folder name e.g. `boots`, `pumps`, `shoes` in sorted o
 Add the following code snippet to your project to use the ImageFolder dataset.
 
 ```java
+// set the image folder path
+Repository repository = Repository.newInstance("folder", Paths.get("/imagefolder");
 ImageFolder dataset =
     new ImageFolder.Builder()
-    // input the root string
-    .setRepository(new SimpleRepository(Paths.get("root")))
-    .optPipeline(
-        // create preprocess pipeline you want
-        new Pipeline()
-            .add(new Resize(width, height))
-            .add(new ToTensor()))
-    .setSampling(batchSize, true)
-    .build();
+        .setRepository(repository)
+        .addTransform(new Resize(100, 100))
+        .addTransform(new ToTensor())
+        .setSampling(batchSize, true)
+        .build();
 // call prepare before using
 dataset.prepare();
 
@@ -110,8 +108,8 @@ api group: 'org.apache.commons', name: 'commons-csv', version: '1.7'
 In order to extend the dataset, the following dependencies are required:
 
 ```
-api "ai.djl:api:0.14.0"
-api "ai.djl:basicdataset:0.14.0"
+api "ai.djl:api:0.16.0"
+api "ai.djl:basicdataset:0.16.0"
 ```
 
 There are four parts we need to implement for CSVDataset.

@@ -24,21 +24,21 @@ The javadocs output is built in the `build/doc/javadoc` folder.
 ## Installation
 You can pull the TensorFlow Lite engine from the central Maven repository by including the following dependency:
 
-- ai.djl.tflite:tflite-engine:0.15.0
+- ai.djl.tflite:tflite-engine:0.16.0
 
 ```xml
 <dependency>
     <groupId>ai.djl.tflite</groupId>
     <artifactId>tflite-engine</artifactId>
-    <version>0.15.0</version>
+    <version>0.16.0</version>
     <scope>runtime</scope>
 </dependency>
 ```
 
-### Automatic
+By default, DJL will download the TensorFlow Lite native libraries into [cache folder](../../../docs/development/cache_management.md) the first time you run DJL.
+It will automatically determine the appropriate jars for your system based on the platform and GPU support.
 
-By default, DJL will automatically download the native libraries into [cache folder](../../../docs/development/cache_management.md) the first time you run DJL.
-It will automatically determine the appropriate jars for your system based on the platform.
+You can choose a native library based on your platform if you don't have network access at runtime.
 
 ### macOS
 For macOS, you can use the following library:

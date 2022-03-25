@@ -50,7 +50,7 @@ The following pseudocode demonstrates running training:
 
 ```java
     // Construct your neural network with built-in blocks
-    Block block = new Mlp(28, 28);
+    Block block = new Mlp(28 * 28, 10, new int[] {128, 64});
 
     try (Model model = Model.newInstance("mlp")) { // Create an empty model
         model.setBlock(block); // set neural network to model
@@ -88,6 +88,8 @@ The following pseudocode demonstrates running training:
 
 ## Release Notes
 
+* [0.16.0](https://github.com/deepjavalibrary/djl/releases/tag/v0.16.0) ([Code](https://github.com/deepjavalibrary/djl/tree/v0.16.0))
+* [0.15.0](https://github.com/deepjavalibrary/djl/releases/tag/v0.15.0) ([Code](https://github.com/deepjavalibrary/djl/tree/v0.15.0))
 * [0.14.0](https://github.com/deepjavalibrary/djl/releases/tag/v0.14.0) ([Code](https://github.com/deepjavalibrary/djl/tree/v0.14.0))
 * [0.13.0](https://github.com/deepjavalibrary/djl/releases/tag/v0.13.0) ([Code](https://github.com/deepjavalibrary/djl/tree/v0.13.0))
 * [0.12.0](https://github.com/deepjavalibrary/djl/releases/tag/v0.12.0) ([Code](https://github.com/deepjavalibrary/djl/tree/v0.12.0))

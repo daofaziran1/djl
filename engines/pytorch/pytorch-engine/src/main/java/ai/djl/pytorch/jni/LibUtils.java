@@ -12,6 +12,7 @@
  */
 package ai.djl.pytorch.jni;
 
+import ai.djl.util.ClassLoaderUtils;
 import ai.djl.util.Platform;
 import ai.djl.util.Utils;
 import java.io.File;
@@ -65,7 +66,7 @@ public final class LibUtils {
         // TODO workaround to make it work on Android Studio
         // It should search for several places to find the native library
         if ("http://www.android.com/".equals(System.getProperty("java.vendor.url"))) {
-            System.loadLibrary(JNI_LIB_NAME); // NOPMD
+            System.loadLibrary("djl_torch"); // NOPMD
             return;
         }
         libTorch = getLibTorch();
@@ -84,6 +85,10 @@ public final class LibUtils {
     }
 
     public static String getVersion() {
+        Matcher m = VERSION_PATTERN.matcher(libTorch.version);
+        if (m.matches()) {
+            return m.group(1);
+        }
         return libTorch.version;
     }
 
@@ -93,6 +98,10 @@ public final class LibUtils {
 
     private static void loadLibTorch(LibTorch libTorch) {
         Path libDir = libTorch.dir.toAbsolutePath();
+        if ("1.8.1".equals(getVersion()) && System.getProperty("os.name").startsWith("Mac")) {
+            // PyTorch 1.8.1 libtorch_cpu.dylib cannot be loaded individually
+            return;
+        }
         List<String> deferred =
                 Arrays.asList(
                         System.mapLibraryName("fbgemm"),
@@ -197,11 +206,14 @@ public final class LibUtils {
         }
         version = matcher.group(1);
 
-        try (InputStream is = LibUtils.class.getResourceAsStream("/jnilib/pytorch.properties")) {
+        try {
+            URL url = ClassLoaderUtils.getResource("jnilib/pytorch.properties");
             String jniVersion = null;
-            if (is != null) {
+            if (url != null) {
                 Properties prop = new Properties();
-                prop.load(is);
+                try (InputStream is = url.openStream()) {
+                    prop.load(is);
+                }
                 jniVersion = prop.getProperty("jni_version");
                 if (jniVersion == null) {
                     throw new AssertionError("No PyTorch jni version found.");
@@ -220,12 +232,9 @@ public final class LibUtils {
         }
 
         Path tmp = null;
-        String libPath = "/jnilib/" + classifier + '/' + flavor + '/' + JNI_LIB_NAME;
+        String libPath = "jnilib/" + classifier + '/' + flavor + '/' + JNI_LIB_NAME;
         logger.info("Extracting {} to cache ...", libPath);
-        try (InputStream is = LibUtils.class.getResourceAsStream(libPath)) {
-            if (is == null) {
-                throw new AssertionError("PyTorch jni not found: " + libPath);
-            }
+        try (InputStream is = ClassLoaderUtils.getResourceAsStream(libPath)) {
             tmp = Files.createTempFile(dir, "jni", "tmp");
             Files.copy(is, tmp, StandardCopyOption.REPLACE_EXISTING);
             Utils.moveQuietly(tmp, path);
@@ -247,7 +256,8 @@ public final class LibUtils {
         }
         if (overrideVersion != null
                 && !overrideVersion.isEmpty()
-                && !overrideVersion.equals(platform.getVersion())) {
+                && !platform.getVersion().startsWith(overrideVersion)) {
+            // platform.version can be 1.8.1-20210421
             logger.warn("Override PyTorch version: {}.", overrideVersion);
             platform = Platform.detectPlatform("pytorch", overrideVersion);
             return downloadPyTorch(platform);
@@ -280,15 +290,26 @@ public final class LibUtils {
                 return new LibTorch(dir.toAbsolutePath(), platform, flavor);
             }
 
+            Matcher m = VERSION_PATTERN.matcher(version);
+            if (!m.matches()) {
+                throw new IllegalArgumentException("Unexpected version: " + version);
+            }
+            String[] versions = m.group(1).split("\\.");
+            int minorVersion = Integer.parseInt(versions[1]);
+            int buildVersion = Integer.parseInt(versions[2]);
+            String pathPrefix;
+            if (minorVersion > 10 || (minorVersion == 10 && buildVersion == 2)) {
+                pathPrefix = "pytorch/" + flavor + '/' + classifier;
+            } else {
+                pathPrefix = "native/lib";
+            }
+
             Files.createDirectories(cacheDir);
             tmp = Files.createTempDirectory(cacheDir, "tmp");
             for (String file : platform.getLibraries()) {
-                String libPath = "/native/lib/" + file;
+                String libPath = pathPrefix + '/' + file;
                 logger.info("Extracting {} to cache ...", libPath);
-                try (InputStream is = LibUtils.class.getResourceAsStream(libPath)) {
-                    if (is == null) {
-                        throw new IllegalStateException("PyTorch library not found: " + libPath);
-                    }
+                try (InputStream is = ClassLoaderUtils.getResourceAsStream(libPath)) {
                     Files.copy(is, tmp.resolve(file), StandardCopyOption.REPLACE_EXISTING);
                 }
             }

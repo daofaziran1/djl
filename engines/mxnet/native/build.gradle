@@ -5,7 +5,7 @@ plugins {
 
 group = "ai.djl.mxnet"
 
-def VERSION = "1.8.0"
+def VERSION = "${mxnet_version}"
 boolean isRelease = project.hasProperty("release") || project.hasProperty("staging")
 version = VERSION + (isRelease ? "" : "-SNAPSHOT")
 
@@ -63,14 +63,14 @@ flavorNames.each { flavor ->
                 def dsStore = file("${BINARY_ROOT}/${flavor}/${osName}/native/lib/.DS_Store")
                 dsStore.delete()
 
-                def versionName = String.format("${version}-%s", new Date().format('yyyyMMdd'))
+                def versionName = String.format("${project.version}-%s", new Date().format('yyyyMMdd'))
                 def dir = file("${BINARY_ROOT}/${flavor}/${osName}/native/lib")
                 def sb = new StringBuilder()
                 sb.append("version=${versionName}\nclassifier=${flavor}-${osName}-x86_64\nlibraries=")
                 def first = true
                 for (String name : dir.list().sort()) {
                     if (first) {
-                        first = false;
+                        first = false
                     } else {
                         sb.append(',')
                     }
@@ -170,13 +170,13 @@ task downloadMxnetNativeLib() {
     doLast {
         def url = "https://publish.djl.ai/mxnet-${VERSION}"
         def files = [
-                "linux/common/libgfortran.so.4.gz": "mkl/linux/native/lib/libgfortran.so.4",
+                "linux/common/libgfortran.so.3.gz": "mkl/linux/native/lib/libgfortran.so.3",
                 "linux/common/libgomp.so.1.gz"    : "mkl/linux/native/lib/libgomp.so.1",
                 "linux/common/libopenblas.so.0.gz": "mkl/linux/native/lib/libopenblas.so.0",
                 "linux/common/libquadmath.so.0.gz": "mkl/linux/native/lib/libquadmath.so.0",
                 "linux/mkl/libmxnet.so.gz"        : "mkl/linux/native/lib/libmxnet.so",
                 "linux/cu102mkl/libmxnet.so.gz"   : "cu102mkl/linux/native/lib/libmxnet.so",
-                "linux/cu110mkl/libmxnet.so.gz"   : "cu110mkl/linux/native/lib/libmxnet.so",
+                "linux/cu112mkl/libmxnet.so.gz"   : "cu112mkl/linux/native/lib/libmxnet.so",
                 "osx/mkl/libmxnet.dylib.gz"       : "mkl/osx/native/lib/libmxnet.dylib",
                 "win/common/libgcc_s_seh-1.dll.gz": "mkl/win/native/lib/libgcc_s_seh-1.dll",
                 "win/common/libgfortran-3.dll.gz" : "mkl/win/native/lib/libgfortran-3.dll",

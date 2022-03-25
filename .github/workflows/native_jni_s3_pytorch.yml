@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
@@ -47,17 +47,16 @@ jobs:
           PYTORCH_VERSION=${PYTORCH_VERSION:-$(cat gradle.properties | awk -F '=' '/pytorch_version/ {print $2}')}
           aws s3 sync engines/pytorch/pytorch-native/jnilib s3://djl-ai/publish/pytorch/${PYTORCH_VERSION}/jnilib
           aws cloudfront create-invalidation --distribution-id E371VB8JQ6NRVY --paths "/pytorch/${PYTORCH_VERSION}/jnilib*"
-
   build-pytorch-jni-linux:
     if: github.repository == 'deepjavalibrary/djl'
     runs-on: ubuntu-latest
     container: nvidia/cuda:11.1-cudnn8-devel-ubuntu18.04
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
@@ -67,11 +66,11 @@ jobs:
       - name: Install Environment
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y locales cmake curl unzip software-properties-common
+          DEBIAN_FRONTEND=noninteractive apt-get install -y locales cmake curl unzip software-properties-common gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           add-apt-repository -y ppa:deadsnakes/ppa
           apt-get update
           apt-get install -y python3 python3-distutils
-          curl -O https://bootstrap.pypa.io/get-pip.py
+          curl -O https://bootstrap.pypa.io/pip/3.6/get-pip.py
           python3 get-pip.py
           pip3 install awscli --upgrade
       - name: Release JNI prep
@@ -85,6 +84,8 @@ jobs:
           ./gradlew :engines:pytorch:pytorch-native:compileJNI -Pcu10 -Ppt_version=$PYTORCH_VERSION
           ./gradlew :engines:pytorch:pytorch-native:cleanJNI
           ./gradlew :engines:pytorch:pytorch-native:compileJNI -Pcu11 -Ppt_version=$PYTORCH_VERSION
+          ./gradlew :engines:pytorch:pytorch-native:cleanJNI
+          CXX=aarch64-linux-gnu-gcc ./gradlew :engines:pytorch:pytorch-native:compileJNI -Paarch64 -Ppt_version=$PYTORCH_VERSION
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -111,10 +112,10 @@ jobs:
           ln -s /usr/bin/cmake3 /usr/bin/cmake
           pip3 install awscli --upgrade
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches
@@ -150,10 +151,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       - uses: actions/cache@v2
         with:
           path: ~/.gradle/caches

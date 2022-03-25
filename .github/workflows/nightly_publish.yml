@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       # Enable gradle cache: https://github.com/actions/cache/blob/master/examples.md#java---gradle
       - uses: actions/cache@v2
         with:
@@ -51,10 +51,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       # Enable gradle cache: https://github.com/actions/cache/blob/master/examples.md#java---gradle
       - uses: actions/cache@v2
         with:
@@ -74,10 +74,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       # Enable gradle cache: https://github.com/actions/cache/blob/master/examples.md#java---gradle
       - uses: actions/cache@v1
         with:
@@ -94,10 +94,10 @@ jobs:
     needs: [ build, test-pytorch, test-tensorflow ]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 11
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 11
       # Enable gradle cache: https://github.com/actions/cache/blob/master/examples.md#java---gradle
       - uses: actions/cache@v2
         with:
@@ -108,7 +108,9 @@ jobs:
       - name: Publish to snapshot repository
         if: ${{ github.event.inputs.mode == '' || github.event.inputs.mode == 'snapshot' }}
         run: |
-          ./gradlew publish -Psnapshot
+          ./gradlew clean engines:pytorch:pytorch-jni:publish -Ppt_version=1.8.1 -Psnapshot
+          ./gradlew clean engines:pytorch:pytorch-jni:publish -Ppt_version=1.9.1 -Psnapshot
+          ./gradlew clean publish -Psnapshot
           cd bom
           ./gradlew publish -Psnapshot
         env:
@@ -119,7 +121,9 @@ jobs:
       - name: Publish to staging repository
         if: ${{ github.event.inputs.mode == 'staging' }}
         run: |
-          ./gradlew publish -P${{ github.event.inputs.mode }}
+          ./gradlew clean engines:pytorch:pytorch-jni:publish -Ppt_version=1.8.1 -P${{ github.event.inputs.mode }}
+          ./gradlew clean engines:pytorch:pytorch-jni:publish -Ppt_version=1.9.1 -P${{ github.event.inputs.mode }}
+          ./gradlew clean publish -P${{ github.event.inputs.mode }}
           cd bom
           ./gradlew publish -P${{ github.event.inputs.mode }}
         env:
